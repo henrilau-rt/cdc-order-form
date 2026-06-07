@@ -9,7 +9,7 @@ MASTER_FILE = 'Product Info_All Countries.xlsx'
 
 def process_order_data(uploaded_file):
     """處理上傳的 Excel 檔案並回傳處理後的 DataFrame"""
-    # 讀取上傳的檔案
+    # 1. 讀取上傳的檔案
     raw_df = pd.read_excel(uploaded_file, header=None)
     header_row = None
     for idx, row in raw_df.iterrows():
@@ -24,7 +24,7 @@ def process_order_data(uploaded_file):
     po_df.columns = po_df.columns.astype(str).str.strip()
     po_df['original_index'] = po_df.index
     
-    # 識別關鍵欄位
+    # 2. 識別關鍵欄位
     item_col = next((c for c in po_df.columns if any(x in c.upper() for x in ['XITEM', 'ITEM#', 'ITEM #'])), None)
     country_cols = [c for c in po_df.columns if 'country' in c.lower()]
     
@@ -42,7 +42,7 @@ def process_order_data(uploaded_file):
     po_df.rename(columns={item_col: 'XITEM'}, inplace=True)
     po_df = po_df[po_df['XITEM'].notna() & (po_df['XITEM'] != '')].copy()
     
-    # 處理尺寸 (Matrix to Long)
+    # 3. 處理尺寸 (Matrix to Long)
     possible_sizes = ['0', '1', '2', '3', '4', '24', '26', '28', '30', '32', '34', '36', '38', '40', '42', '44', 'M', 'L', 'UNI', 'S', 'XL']
     existing_size_cols = [c for c in po_df.columns if str(c) in possible_sizes]
     
@@ -58,13 +58,14 @@ def process_order_data(uploaded_file):
     po_long = po_long[po_long['qty'].notna() & (po_long['qty'] != 0)]
     po_long['SIZENAME'] = po_long['SIZENAME'].astype(str).str.strip().replace({'UNI': 'UNIQUE'})
     
-    # 國家映射
+    # 4. 國家映射
     mapping = {
         'HK': 'HKD', 'MKT': 'HKD', 'TW': 'TWD', 'TWHR': 'TWD', 'JP': 'JPY', 
         'Zenzo (SG)': 'Zenzo_SGD', 'Zenso (SG)': 'Zenzo_SGD', 'Zenzo': 'Zenzo_SGD', 'ER': 'ER'
     }
     po_long['Target_Sheet'] = po_long[country_col].apply(lambda x: next((v for k, v in mapping.items() if k.lower() in str(x).lower()), None))
     
+    # 5. 合併與最終處理
     results = []
     for sheet, group in po_long.groupby('Target_Sheet'):
         if not sheet or not os.path.exists(MASTER_FILE): continue
@@ -86,7 +87,9 @@ def process_order_data(uploaded_file):
     final_df = pd.concat(results, ignore_index=True)
     final_df = final_df.sort_values(['original_index', 'SIZENAME'])
     
+    # 應用更新後的邏輯
     final_df['MPO'] = final_df['PO#'] if 'PO#' in final_df.columns else ""
+    final_df['UPC'] = final_df['BCODE13'] if 'BCODE13' in final_df.columns else ""
     final_df['qty'] = final_df['qty'].astype(int)
     
     if 'Currency' in final_df.columns:
