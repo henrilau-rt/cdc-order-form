@@ -29,7 +29,7 @@ def process_order_data(uploaded_file):
     country_cols = [c for c in po_df.columns if 'country' in c.lower()]
     
     country_col = None
-    known_codes = ['HK', 'TW', 'ER', 'ZENZO', 'ZENSO', 'MKT', 'TWHR', 'JP']
+    known_codes = ['HK', 'TW', 'ER', 'ZENZO', 'ZENSO', 'MKT', 'ZA', 'TWHR', 'JP']
     for c in country_cols:
         sample_values = po_df[c].fillna('').astype(str).str.upper()
         if any(code in ' '.join(sample_values) for code in known_codes):
@@ -61,7 +61,7 @@ def process_order_data(uploaded_file):
     # 4. 國家映射
     mapping = {
         'HK': 'HKD', 'MKT': 'HKD', 'TW': 'TWD', 'TWHR': 'TWD', 'JP': 'JPY', 
-        'Zenzo (SG)': 'Zenzo_SGD', 'Zenso (SG)': 'Zenzo_SGD', 'Zenzo': 'Zenzo_SGD', 'ER': 'ER'
+        'Zenzo (SG)': 'Zenzo_SGD', 'ZA': 'Zenzo_SGD', 'Zenso (SG)': 'Zenzo_SGD', 'Zenzo': 'Zenzo_SGD', 'ER': 'ER'
     }
     po_long['Target_Sheet'] = po_long[country_col].apply(lambda x: next((v for k, v in mapping.items() if k.lower() in str(x).lower()), None))
     
