@@ -43,7 +43,7 @@ def process_order_data(uploaded_file):
     po_df = po_df[po_df['XITEM'].notna() & (po_df['XITEM'] != '')].copy()
     
     # 3. 處理尺寸 (Matrix to Long)
-    possible_sizes = ['0', '1', '2', '3', '4', '24', '26', '28', '30', '32', '34', '36', '38', '40', '42', '44', 'M', 'L', 'UNI', 'S', 'XL']
+    possible_sizes = ['0', '1', '2', '3', '4', '5', '24', '26', '28', '30', '32', '34', '36', '38', '40', '42', '44', 'M', 'L', 'UNI', 'S', 'XL']
     existing_size_cols = [c for c in po_df.columns if str(c) in possible_sizes]
     
     if existing_size_cols:
